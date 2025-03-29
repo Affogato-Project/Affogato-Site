@@ -1,7 +1,7 @@
 library affogato.site;
 
 import 'dart:convert';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth_web/firebase_auth_web.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:http/http.dart' as http;
 import 'package:video_player/video_player.dart';
@@ -12,8 +12,7 @@ part './api_clients/users_api_client.g.dart';
 part './options.dart';
 part './dev_secrets.dart';
 
-final FirebaseAuth auth = FirebaseAuth.instance;
-
+final FirebaseAuthWeb auth = FirebaseAuthWeb.instance;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: options);
@@ -45,24 +44,24 @@ class MyAppState extends State<MyApp> {
       child: Center(
         child: TextButton(
           onPressed: () async {
-            await auth.currentUser?.reload();
-
             if (auth.currentUser == null) {
               await showDialog(
                 context: context,
                 builder: (ctx) => SignUpDialog(),
               );
-            } else if (!auth.currentUser!.emailVerified) {
-              await auth.currentUser!.sendEmailVerification();
+            } else if (!auth.currentUser!.isEmailVerified) {
+              // await auth.currentUser!.sendEmailVerification(null);
               print('please verify your email');
             } else {
               print('ok');
             }
-            if (auth.currentUser != null && auth.currentUser!.emailVerified) {
+
+            if (auth.currentUser != null) {
               final res = await MailAPI.mailSubscribeEarlyAccess.post(
-                auth: (await auth.currentUser!.getIdToken())!,
+                auth: (await auth.currentUser!.getIdToken(true))!,
                 queryParameters: (productId: 'cortado_alpha'),
               );
+
               if (res.statusCode == 200) {
                 if (context.mounted) {
                   await showDialog(
@@ -74,6 +73,9 @@ class MyAppState extends State<MyApp> {
                     ),
                   );
                 }
+              } else {
+                print(res.statusCode);
+                print(res.body);
               }
             }
           },
@@ -129,16 +131,15 @@ class SignUpDialog extends StatelessWidget {
           TextButton(
             onPressed: () async {
               try {
-                final cred = await auth.createUserWithEmailAndPassword(
-                  email: email,
-                  password: 'abc123!',
-                );
-                await cred.user!.sendEmailVerification();
+                final cred =
+                    await auth.createUserWithEmailAndPassword(email, 'abc123!');
+                //   await cred.user!.sendEmailVerification(null);
                 await UsersAPI.usersAccountCreate.post(queryParameters: (
-                  authorization: (await cred.user!.getIdToken())!
+                  authorization: (await cred.user!.getIdToken(false))!
                 ));
-              } on FirebaseAuthException catch (e, st) {
+              } on FirebaseException catch (e, st) {
                 print(e.message);
+                print(st);
               }
               if (context.mounted) {
                 Navigator.of(context).pop();
@@ -148,8 +149,7 @@ class SignUpDialog extends StatelessWidget {
           ),
           TextButton(
             onPressed: () async {
-              await auth.signInWithEmailAndPassword(
-                  email: email, password: 'abc123!');
+              await auth.signInWithEmailAndPassword(email, 'abc123!');
               if (context.mounted) {
                 Navigator.of(context).pop();
               }
