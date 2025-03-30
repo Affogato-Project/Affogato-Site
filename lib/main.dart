@@ -58,7 +58,7 @@ class MyAppState extends State<MyApp> {
 
             if (auth.currentUser != null) {
               final res = await MailAPI.mailSubscribeEarlyAccess.post(
-                auth: (await auth.currentUser!.getIdToken(true))!,
+                authorization: (await auth.currentUser!.getIdToken(true))!,
                 queryParameters: (productId: 'cortado_alpha'),
               );
 
@@ -134,9 +134,9 @@ class SignUpDialog extends StatelessWidget {
                 final cred =
                     await auth.createUserWithEmailAndPassword(email, 'abc123!');
                 //   await cred.user!.sendEmailVerification(null);
-                await UsersAPI.usersAccountCreate.post(queryParameters: (
-                  authorization: (await cred.user!.getIdToken(false))!
-                ));
+                await UsersAPI.usersAccountCreate.post(
+                  authorization: (await cred.user!.getIdToken(false))!,
+                );
               } on FirebaseException catch (e, st) {
                 print(e.message);
                 print(st);

@@ -9,18 +9,15 @@ class UsersAPI {
 
 class UsersAccountCreateEndpoint {
   Future<http.Response> post({
-    required ({
-      String authorization,
-    }) queryParameters,
+    required String authorization,
   }) async {
     return await http.post(
-      headers: {
-        'Authorization': 'Bearer ${queryParameters.authorization}',
-      },
       Uri.https(
         'apis.obsivision.com',
         'users/account/create',
+        null,
       ),
+      headers: {'Authorization': 'Bearer $authorization'},
     );
   }
 }

@@ -34,13 +34,12 @@ class MailSubscribePostEndpoint {
 
 class MailSubscribeEarlyAccessEndpoint {
   Future<http.Response> post({
-    required String auth,
+    required String authorization,
     required ({
       String productId,
     }) queryParameters,
   }) async {
     return await http.post(
-      headers: {'Authorization': 'Bearer $auth'},
       Uri.https(
         'apis.obsivision.com',
         'mail/subscribe/early-access',
@@ -48,7 +47,7 @@ class MailSubscribeEarlyAccessEndpoint {
           'productId': queryParameters.productId,
         },
       ),
-      body: jsonEncode({}),
+      headers: {'Authorization': 'Bearer $authorization'},
     );
   }
 }
